@@ -1,23 +1,42 @@
 import logo from './logo.svg';
 import './App.css';
+import { gql, useQuery } from '@apollo/client';
+
+const profileQuery = gql`
+  query {
+    viewer {
+      login
+      avatarUrl
+      company
+
+      repositories(first: 10) {
+        nodes {
+          name
+          id
+          createdAt
+          defaultBranchRef {
+            name
+          }
+        }
+      }
+    }
+  }
+`;
 
 function App() {
+  const { loading, error, data } = useQuery(profileQuery);
+  if (loading) return 'Loading ...';
+  if (error) return 'Something went wrong!';
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <img src={data.viewer.avatarUrl} height="200" alt="Profile" />
+      <p>{data.viewer.company}</p>
+      <ul>
+        {data.viewer.repositories.nodes.map((repo) => {
+          return <li key={repo.id}>{repo.name}</li>;
+        })}
+      </ul>
     </div>
   );
 }
